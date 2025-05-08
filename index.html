@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页版植物大战僵尸 (元素调大)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'SimHei', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #333; /* Fallback background */
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars from body */
+        }
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #start-screen h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2.5rem; /* Responsive font size */
+            color: #FFD700; /* Gold color */
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        #start-button { /* Kept for potential future use, but screen click starts game */
+             display: none;
+        }
+
+        #game-container {
+            background-size: cover;
+            background-position: center top; /* Lawn typically at the top/center */
+            border: none;
+            box-shadow: none;
+            position: relative;
+            border-radius: 0;
+            display: none; /* Initially hidden, shown by JS */
+            width: 100%;
+            height: 100vh; /* Game container takes full screen height */
+            z-index: 1;
+            /* Flex settings to position canvas and spacer */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Aligns items (canvas, spacer) to the bottom */
+            align-items: center; /* Centers items horizontally */
+        }
+        canvas {
+            display: block;
+            border-radius: 0; /* No rounded corners for the game canvas itself */
+            pointer-events: auto; /* Allow clicks on canvas */
+            z-index: 0; /* Canvas behind UI panel */
+            /* background-color: rgba(0,0,0,0.1); /* For debugging canvas bounds */
+        }
+        /* Spacer div to push the canvas up by two row heights */
+        #bottom-spacer {
+            height: 200px; /* 2 * CELL_SIZE (2 * 100px) */
+            width: 100%;   /* Take full width */
+            flex-shrink: 0; /* Prevent spacer from shrinking */
+        }
+
+        .ui-panel {
+            position: absolute; /* UI panel remains at top of game-container */
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: transparent; /* Make panel background transparent */
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 0;
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            gap: 10px; /* Smaller gap for more items */
+            align-items: center;
+            justify-content: center; /* Center items in the panel */
+            z-index: 20; /* UI on top of canvas */
+            width: 100%; /* Full width */
+            padding-top: 20px; /* Space from top */
+            padding-bottom: 10px; /* Space before canvas potentially starts */
+        }
+        .ui-panel button {
+            background-color: #4CAF50; /* Green, like plants */
+            color: white;
+            border: 2px solid #3e8e41; /* Darker green border */
+            padding: 8px 12px; /* Adjusted padding */
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex; /* For aligning image and text */
+            align-items: center;
+            justify-content: center;
+            font-size: 14px; /* Slightly smaller font */
+            font-weight: bold;
+            border-radius: 0.5rem; /* Rounded corners */
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            min-height: 50px; /* Min height for consistency */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2); /* Subtle shadow */
+        }
+        .ui-panel button img { /* Size of images within buttons */
+            width: 36px;
+            height: 36px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .ui-panel button:hover {
+            background-color: #45a049;
+            transform: translateY(-1px); /* Slight lift on hover */
+        }
+        .ui-panel button.selected {
+            background-color: #FFC107; /* Yellow for selected */
+            color: #333;
+            border-color: #e0a800;
+            box-shadow: 0 0 8px #FFC107, 0 0 15px #FFC107; /* Glow effect */
+        }
+        .ui-panel button:disabled {
+            background-color: #777;
+            border-color: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none;
+        }
+        #sun-count-display, #score-display, #wave-display {
+            color: #ffffff; /* White text */
+            font-size: 1.2em; /* Adjusted size */
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); /* Text shadow for readability */
+            padding: 8px 12px;
+            background-color: rgba(0,0,0,0.5); /* Semi-transparent black background */
+            border-radius: 0.4rem; /* Rounded corners */
+            margin: 5px; /* Spacing around displays */
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.88); /* Darker, more opaque */
+            color: white;
+            padding: 30px 50px; /* Adjusted padding */
+            border-radius: 12px; /* Rounded corners */
+            font-size: 26px; /* Base font size */
+            text-align: center;
+            z-index: 1000; /* On top of everything */
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; /* Click to dismiss/restart */
+            box-shadow: 0 0 30px rgba(0,0,0,0.7); /* Stronger shadow */
+        }
+        #message-box h2 { /* Game Over title */
+            font-size: 2.8rem; /* Responsive size */
+            font-family: 'Press Start 2P', cursive; /* Arcade font */
+            color: #ff3860; /* Bright red for game over */
+            text-shadow: 0 0 10px rgba(255, 56, 96, 0.8);
+            margin-bottom: 1.5rem;
+        }
+        #message-box p { /* Subtext */
+            font-size: 1.3rem;
+            color: #f0f0f0; /* Light gray */
+            margin-bottom: 2rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #start-screen h1 { font-size: 2rem; }
+            .ui-panel { gap: 8px; padding-top: 15px; }
+            .ui-panel button { padding: 6px 10px; font-size: 13px; min-height: 45px; }
+            .ui-panel button img { width: 30px; height: 30px; }
+            #sun-count-display, #score-display, #wave-display { font-size: 1em; padding: 6px 10px; }
+            #message-box { padding: 25px 40px; font-size: 22px; }
+            #message-box h2 { font-size: 2.2rem; }
+            #message-box p { font-size: 1.1rem; }
+        }
+         @media (max-width: 480px) {
+            #start-screen h1 { font-size: 1.5rem; }
+            .ui-panel { padding-top: 10px; gap: 5px; }
+            .ui-panel button { padding: 5px 8px; font-size: 12px; min-height: 40px; }
+            .ui-panel button img { width: 24px; height: 24px; margin-right: 4px;}
+            #sun-count-display, #score-display, #wave-display { font-size: 0.9em; padding: 5px 8px; }
+            #message-box { padding: 20px; width: 90%;}
+            #message-box h2 { font-size: 1.8rem; }
+            #message-box p { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-white">
+    <div id="start-screen">
+        <h1>植物大战僵尸</h1>
+        <button id="start-button" class="hidden">开始游戏</button>
+    </div>
+
+    <div id="game-container">
+        <div class="ui-panel">
+            <div id="sun-count-display">阳光: 150</div>
+            <div id="score-display">得分: 0</div>
+            <div id="wave-display">波数: 0</div>
+            <button id="select-peashooter" data-plant-type="peashooter" data-cost="100">豌豆射手 (100)</button>
+            <button id="select-sunflower" data-plant-type="sunflower" data-cost="50">向日葵 (50)</button>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="bottom-spacer"></div>
+    </div>
+    <div id="message-box">
+        <h2>僵尸吃掉了你的脑子！</h2>
+        <p>点击屏幕重新开始游戏</p>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('start-screen');
+        const gameContainer = document.getElementById('game-container');
+        const messageBox = document.getElementById('message-box');
+        const bottomSpacer = document.getElementById('bottom-spacer');
+
+        const sunCountDisplay = document.getElementById('sun-count-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const waveDisplay = document.getElementById('wave-display');
+
+        const selectPeashooterButton = document.getElementById('select-peashooter');
+        const selectSunflowerButton = document.getElementById('select-sunflower');
+        const plantButtons = [selectPeashooterButton, selectSunflowerButton];
+
+        // --- Game Constants ---
+        const CELL_SIZE = 100; // Size of each grid cell
+        const NUM_ROWS = 4;    // Number of rows for planting and zombie movement
+        const NUM_COLS = 9;    // Number of columns
+        const GAME_AREA_WIDTH = NUM_COLS * CELL_SIZE;
+        const GAME_AREA_HEIGHT = NUM_ROWS * CELL_SIZE; // Canvas height based on 4 rows
+        const HOUSE_X_LIMIT = CELL_SIZE / 2;
+
+        canvas.width = GAME_AREA_WIDTH;
+        canvas.height = GAME_AREA_HEIGHT;
+        bottomSpacer.style.height = (2 * CELL_SIZE) + 'px'; // Push canvas up by two rows' visual space
+
+        // --- Image Preloading and Asset URLs ---
+        const ASSET_URLS = {
+            sun: 'https://cdn.canghecode.com/blog/dfbebd2a-89a2-48cb-8906-977544fa1df4.png',
+            zombie: 'https://cdn.canghecode.com/blog/523fcaec-2129-4938-8ae7-ab673d020b28.png',
+            peashooter: 'https://cdn.canghecode.com/blog/b9b1d064-fac2-4cd8-ac57-8b2c39615cb3.png',
+            sunflower: 'https://cdn.canghecode.com/blog/90f8b06a-2821-4938-9662-4fd5510d0272.png',
+            startScreenBg: 'https://cdn.canghecode.com/blog/20250508142334.png',
+            gameBg: 'https://cdn.canghecode.com/blog/20250508151220.png'
+        };
+
+        // MODIFIED: Placeholder dimensions increased for larger elements
+        const PEASHOOTER_PLACEHOLDER_W = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const PEASHOOTER_PLACEHOLDER_H = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const SUNFLOWER_PLACEHOLDER_W = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const SUNFLOWER_PLACEHOLDER_H = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const ZOMBIE_PLACEHOLDER_W = Math.floor(CELL_SIZE * 0.7);    // Was 0.6
+        const ZOMBIE_PLACEHOLDER_H = Math.floor(CELL_SIZE * 0.95);   // Was 0.85
+        const SUN_PLACEHOLDER_SIZE = Math.floor(CELL_SIZE * 0.7);     // Was 56 (0.56 * CELL_SIZE)
+
+        const PLACEHOLDER_URLS = {
+            sun: `https://placehold.co/${SUN_PLACEHOLDER_SIZE}x${SUN_PLACEHOLDER_SIZE}/FFD700/000000?text=S`,
+            zombie: `https://placehold.co/${ZOMBIE_PLACEHOLDER_W}x${ZOMBIE_PLACEHOLDER_H}/6B4628/FFFFFF?text=Z`,
+            peashooter: `https://placehold.co/${PEASHOOTER_PLACEHOLDER_W}x${PEASHOOTER_PLACEHOLDER_H}/34D399/000000?text=P`,
+            sunflower: `https://placehold.co/${SUNFLOWER_PLACEHOLDER_W}x${SUNFLOWER_PLACEHOLDER_H}/FBBF24/000000?text=SF`,
+            startScreenBg: 'https://placehold.co/1200x800/2c5282/ffffff?text=Plants+vs+Zombies',
+            gameBg: 'https://placehold.co/1200x800/556b2f/ffffff?text=Lawn'
+        };
+
+        startScreen.style.backgroundImage = `url('${ASSET_URLS.startScreenBg}'), url('${PLACEHOLDER_URLS.startScreenBg}')`;
+        gameContainer.style.backgroundImage = `url('${ASSET_URLS.gameBg}'), url('${PLACEHOLDER_URLS.gameBg}')`;
+
+        function loadImage(src, placeholderSrc, onLoadCallback, onErrorCallback) {
+            const img = new Image();
+            img.onload = () => { console.log(`Image loaded: ${src}`); if (onLoadCallback) onLoadCallback(img); };
+            img.onerror = (e) => {
+                console.error(`Failed to load image: ${src}. Attempting placeholder: ${placeholderSrc}`, e);
+                img.src = placeholderSrc;
+                img.onload = () => { console.log(`Placeholder loaded: ${placeholderSrc}`); if (onLoadCallback) onLoadCallback(img); };
+                img.onerror = (e2) => { console.error(`Failed to load placeholder image: ${placeholderSrc}`, e2); if (onErrorCallback) onErrorCallback(); };
+            };
+            img.src = src; return img;
+        }
+
+        let sunImage, zombieImage, peashooterImage, sunflowerImage;
+        let imagesLoadedCount = 0; const totalImagesToLoad = 4;
+        function assetLoaded() { imagesLoadedCount++; if (imagesLoadedCount === totalImagesToLoad) { console.log("All essential game images loaded!"); } }
+        function assetError() { console.error("An essential image (and its placeholder) failed to load."); }
+
+        sunImage = loadImage(ASSET_URLS.sun, PLACEHOLDER_URLS.sun, assetLoaded, assetError);
+        zombieImage = loadImage(ASSET_URLS.zombie, PLACEHOLDER_URLS.zombie, assetLoaded, assetError);
+        peashooterImage = loadImage(ASSET_URLS.peashooter, PLACEHOLDER_URLS.peashooter, (img) => { updatePlantButtonUI(selectPeashooterButton, img, ` (${selectPeashooterButton.dataset.cost})`); assetLoaded(); }, assetError);
+        sunflowerImage = loadImage(ASSET_URLS.sunflower, PLACEHOLDER_URLS.sunflower, (img) => { updatePlantButtonUI(selectSunflowerButton, img, ` (${selectSunflowerButton.dataset.cost})`); assetLoaded(); }, assetError);
+
+        function updatePlantButtonUI(buttonElement, imgObject, costText) {
+            const buttonImg = document.createElement('img');
+            buttonImg.src = imgObject.src; buttonImg.alt = buttonElement.dataset.plantType;
+            buttonElement.innerHTML = ""; buttonElement.appendChild(buttonImg); buttonElement.appendChild(document.createTextNode(costText));
+        }
+
+        let sunAmount = 150, score = 0, waveCount = 0, gameOver = false, selectedPlantType = null;
+        let plants = [], zombies = [], bullets = [], suns = [];
+        let lastNaturalSunSpawnTime = 0, naturalSunSpawnDelay = 8000;
+        let lastZombieSpawnTime = 0, zombieSpawnDelay = 10000, zombiesThisWave = 0, zombiesPerWave = 3;
+        let gameStarted = false, animationFrameId;
+
+        const COLORS = { peashooter: 'lightgreen', sunflower: 'yellow', bullet: 'darkorange', plantHealthBarGood: 'green', plantHealthBarBad: 'red', plantHealthBarBackground: 'grey' };
+
+        class Entity {
+            constructor(x, y, width, height, color) { this.x = x; this.y = y; this.width = width; this.height = height; this.color = color; this.id = Math.random().toString(36).substring(2, 11); }
+            draw(ctx) { if (this.color) { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height); } }
+            collidesWith(other) { return this.x < other.x + other.width && this.x + this.width > other.x && this.y < other.y + other.height && this.y + this.height > other.y; }
+        }
+
+        class Plant extends Entity {
+            constructor(gridX, gridY, width, height, color, health, cost, plantType) {
+                const x = gridX * CELL_SIZE + (CELL_SIZE - width) / 2;
+                const y = gridY * CELL_SIZE + (CELL_SIZE - height) / 2;
+                super(x, y, width, height, color);
+                this.gridX = gridX; this.gridY = gridY; this.health = health; this.maxHealth = health; this.cost = cost; this.plantType = plantType;
+            }
+            update() { if (this.health <= 0) { this.remove(); } }
+            remove() { plants = plants.filter(p => p.id !== this.id); }
+            drawHealthBar(ctx) {
+                if (this.health < this.maxHealth && this.health > 0) {
+                    const barWidth = this.width * 0.8, barHeight = 8, barX = this.x + (this.width - barWidth) / 2, barY = this.y - barHeight - 4;
+                    const healthPercentage = this.health / this.maxHealth;
+                    ctx.fillStyle = COLORS.plantHealthBarBackground; ctx.fillRect(barX, barY, barWidth, barHeight);
+                    ctx.fillStyle = healthPercentage > 0.3 ? COLORS.plantHealthBarGood : COLORS.plantHealthBarBad;
+                    ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
+                }
+            }
+            draw(ctx){ super.draw(ctx); this.drawHealthBar(ctx); }
+        }
+
+        // MODIFIED: Plant display sizes increased
+        const PEASHOOTER_DISPLAY_WIDTH = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const PEASHOOTER_DISPLAY_HEIGHT = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+
+        class PeaShooter extends Plant {
+            constructor(gridX, gridY) {
+                super(gridX, gridY, PEASHOOTER_DISPLAY_WIDTH, PEASHOOTER_DISPLAY_HEIGHT, COLORS.peashooter, 100, 100, 'peashooter');
+                this.shootDelay = 1800; this.lastShotTime = Date.now() - Math.random() * this.shootDelay;
+            }
+            update() {
+                super.update(); let zombieInRow = false;
+                for (const zombie of zombies) { if (zombie.row === this.gridY && zombie.x > this.x) { zombieInRow = true; break; } }
+                if (zombieInRow && Date.now() - this.lastShotTime > this.shootDelay) { this.shoot(); this.lastShotTime = Date.now(); }
+            }
+            shoot() { const bulletX = this.x + this.width * 0.7; const bulletY = this.y + this.height / 2 - (BULLET_DISPLAY_HEIGHT / 2); bullets.push(new Bullet(bulletX, bulletY)); }
+            draw(ctx) { if (peashooterImage && peashooterImage.complete && peashooterImage.naturalWidth !== 0) { ctx.drawImage(peashooterImage, this.x, this.y, this.width, this.height); } else { super.draw(ctx); } this.drawHealthBar(ctx); }
+        }
+
+        // MODIFIED: Sunflower display sizes increased
+        const SUNFLOWER_DISPLAY_WIDTH = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+        const SUNFLOWER_DISPLAY_HEIGHT = Math.floor(CELL_SIZE * 0.85); // Was 0.7
+
+        class Sunflower extends Plant {
+            constructor(gridX, gridY) {
+                super(gridX, gridY, SUNFLOWER_DISPLAY_WIDTH, SUNFLOWER_DISPLAY_HEIGHT, COLORS.sunflower, 75, 50, 'sunflower');
+                this.sunProductionDelay = 12000; this.lastSunTime = Date.now() - Math.random() * this.sunProductionDelay;
+            }
+            update() { super.update(); if (Date.now() - this.lastSunTime > this.sunProductionDelay) { this.produceSun(); this.lastSunTime = Date.now(); } }
+            produceSun() {
+                const sunX = this.x + this.width / 2 - (SUN_DISPLAY_WIDTH / 2) + (Math.random() * 20 - 10);
+                let sunY = this.y - SUN_DISPLAY_HEIGHT / 2; if (sunY < 0) sunY = 0;
+                const targetY = this.y + this.height / 2 - SUN_DISPLAY_HEIGHT / 2;
+                suns.push(new Sun(sunX, sunY, false, targetY, 'rise_stop'));
+            }
+            draw(ctx) { if (sunflowerImage && sunflowerImage.complete && sunflowerImage.naturalWidth !== 0) { ctx.drawImage(sunflowerImage, this.x, this.y, this.width, this.height); } else { super.draw(ctx); } this.drawHealthBar(ctx); }
+        }
+
+        // MODIFIED: Zombie display sizes increased
+        const ZOMBIE_DISPLAY_WIDTH = Math.floor(CELL_SIZE * 0.7);    // Was 0.6
+        const ZOMBIE_DISPLAY_HEIGHT = Math.floor(CELL_SIZE * 0.95);   // Was 0.85
+
+        class Zombie extends Entity {
+            constructor(row) {
+                const x = GAME_AREA_WIDTH; const y = row * CELL_SIZE + (CELL_SIZE - ZOMBIE_DISPLAY_HEIGHT) / 2;
+                super(x, y, ZOMBIE_DISPLAY_WIDTH, ZOMBIE_DISPLAY_HEIGHT, 'saddlebrown');
+                this.health = 100 + waveCount * 10; this.maxHealth = this.health;
+                this.speed = 0.25 + Math.random() * 0.15 + waveCount * 0.02; if (this.speed > 0.8) this.speed = 0.8;
+                this.damage = 10; this.isAttacking = false; this.attackTarget = null; this.attackDelay = 1000; this.lastAttackTime = 0; this.row = row;
+            }
+            update() {
+                this.isAttacking = false; this.attackTarget = null;
+                for (const plant of plants) { if (plant.gridY === this.row && this.collidesWith(plant) && plant.x < this.x) { this.isAttacking = true; this.attackTarget = plant; break; } }
+                if (this.isAttacking && this.attackTarget) { if (Date.now() - this.lastAttackTime > this.attackDelay) { this.attackTarget.health -= this.damage; this.lastAttackTime = Date.now(); if (this.attackTarget.health <= 0) { this.isAttacking = false; this.attackTarget = null; } } } else { this.x -= this.speed; }
+                if (this.x < HOUSE_X_LIMIT) { gameOver = true; }
+                if (this.x + this.width < 0) this.remove();
+                if (this.health <= 0) { this.remove(); score += 10; }
+            }
+            remove() { zombies = zombies.filter(z => z.id !== this.id); }
+            drawHealthBar(ctx) { if (this.health < this.maxHealth && this.health > 0) { const barWidth = this.width * 0.9, barHeight = 7, barX = this.x + (this.width - barWidth) / 2, barY = this.y - barHeight - 4; const healthPercentage = this.health / this.maxHealth; ctx.fillStyle = COLORS.plantHealthBarBackground; ctx.fillRect(barX, barY, barWidth, barHeight); ctx.fillStyle = healthPercentage > 0.3 ? COLORS.plantHealthBarGood : COLORS.plantHealthBarBad; ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight); } }
+            draw(ctx) { if (zombieImage && zombieImage.complete && zombieImage.naturalWidth !== 0) { ctx.drawImage(zombieImage, this.x, this.y, this.width, this.height); } else { super.draw(ctx); } this.drawHealthBar(ctx); }
+        }
+
+        // MODIFIED: Bullet display sizes increased
+        const BULLET_DISPLAY_WIDTH = 28; // Was 22
+        const BULLET_DISPLAY_HEIGHT = 16; // Was 12
+
+        class Bullet extends Entity {
+            constructor(x, y) { super(x, y, BULLET_DISPLAY_WIDTH, BULLET_DISPLAY_HEIGHT, COLORS.bullet); this.speed = 7; this.damage = 25; }
+            update() { this.x += this.speed; if (this.x > GAME_AREA_WIDTH) this.remove(); }
+            remove() { bullets = bullets.filter(b => b.id !== this.id); }
+            draw(ctx) { ctx.fillStyle = this.color; ctx.beginPath(); const rX = this.width / 2, rY = this.height / 2; ctx.ellipse(this.x + rX, this.y + rY, rX, rY, 0, 0, Math.PI * 2); ctx.fill(); }
+        }
+
+        // MODIFIED: Sun display sizes increased
+        const SUN_DISPLAY_WIDTH = Math.floor(CELL_SIZE * 0.7); // Was 56
+        const SUN_DISPLAY_HEIGHT = Math.floor(CELL_SIZE * 0.7); // Was 56
+
+        class Sun extends Entity {
+            constructor(x, initialY, isNatural = true, targetY = null, movementType = null) {
+                super(x, initialY, SUN_DISPLAY_WIDTH, SUN_DISPLAY_HEIGHT, null);
+                this.value = 25; this.spawnTime = Date.now(); this.lifetime = 9000; this.isNatural = isNatural; this.collected = false;
+                this.initialY = initialY; this.movementType = movementType; this.reachedDestination = false;
+                if (isNatural) {
+                    this.movementType = 'fall_natural'; const randomRow = Math.floor(Math.random() * NUM_ROWS);
+                    this.targetY = randomRow * CELL_SIZE + (CELL_SIZE - this.height) / 2 + (Math.random() * (CELL_SIZE / 2) - (CELL_SIZE / 4));
+                    if (this.targetY < this.height / 2) this.targetY = this.height / 2;
+                    if (this.targetY > (NUM_ROWS * CELL_SIZE) - this.height * 1.2) { this.targetY = (NUM_ROWS * CELL_SIZE) - this.height * 1.2; }
+                    this.fallSpeed = 0.6 + Math.random() * 0.6;
+                } else if (movementType === 'rise_stop') { this.targetY = targetY !== null ? targetY : initialY - CELL_SIZE / 2; this.fallSpeed = -1.0; this.lifetime = 7000; }
+                else { this.targetY = initialY; this.reachedDestination = true; }
+            }
+            update() {
+                if (this.collected || (Date.now() - this.spawnTime > this.lifetime)) { this.remove(); return; }
+                if (!this.reachedDestination) {
+                    switch (this.movementType) {
+                        case 'fall_natural': if (this.y < this.targetY) { this.y += this.fallSpeed; if (this.y >= this.targetY) { this.y = this.targetY; this.reachedDestination = true; } } else { this.reachedDestination = true; } break;
+                        case 'rise_stop': if (this.y > this.targetY) { this.y += this.fallSpeed; if (this.y <= this.targetY) { this.y = this.targetY; this.reachedDestination = true; } } else { this.reachedDestination = true; } break;
+                        default: this.reachedDestination = true; break;
+                    }
+                }
+            }
+            remove() { suns = suns.filter(s => s.id !== this.id); }
+            draw(ctx) { if (sunImage && sunImage.complete && sunImage.naturalWidth !== 0) { ctx.drawImage(sunImage, this.x, this.y, this.width, this.height); } else { ctx.fillStyle = 'gold'; ctx.beginPath(); ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'orange'; ctx.beginPath(); ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2.8, 0, Math.PI * 2); ctx.fill(); } }
+            isClicked(mouseX, mouseY) { const cX = this.x + this.width / 2, cY = this.y + this.height / 2, r = this.width / 2; const d = Math.sqrt(Math.pow(mouseX - cX, 2) + Math.pow(mouseY - cY, 2)); return d < r; }
+        }
+
+        function spawnNaturalSun() { const x = Math.random() * (GAME_AREA_WIDTH - SUN_DISPLAY_WIDTH); const y = -SUN_DISPLAY_HEIGHT; suns.push(new Sun(x, y, true)); }
+        function spawnZombie() { const row = Math.floor(Math.random() * NUM_ROWS); zombies.push(new Zombie(row)); zombiesThisWave++; }
+        function updateGameObjects(timestamp) { plants.forEach(p => p.update(timestamp)); zombies.forEach(z => z.update(timestamp)); bullets.forEach(b => b.update(timestamp)); suns.forEach(s => s.update(timestamp)); }
+        function handleCollisions() {
+            for (let i = bullets.length - 1; i >= 0; i--) { const b = bullets[i]; for (let j = zombies.length - 1; j >= 0; j--) { const z = zombies[j]; const bCY = b.y + b.height / 2; const zLT = z.row * CELL_SIZE, zLB = zLT + CELL_SIZE; if (bCY > zLT && bCY < zLB && b.collidesWith(z)) { z.health -= b.damage; b.remove(); break; } } }
+        }
+        function updateUI() {
+            sunCountDisplay.textContent = `阳光: ${sunAmount}`; scoreDisplay.textContent = `得分: ${score}`; waveDisplay.textContent = `波数: ${waveCount + 1}`;
+            plantButtons.forEach(button => { const cost = parseInt(button.dataset.cost); const canAfford = sunAmount >= cost; button.disabled = !canAfford; button.classList.toggle('opacity-50', !canAfford); button.classList.toggle('cursor-not-allowed', !canAfford); button.classList.toggle('selected', selectedPlantType === button.dataset.plantType && canAfford); });
+        }
+        function drawGameObjects() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            suns.forEach(s => s.draw(ctx)); plants.forEach(p => p.draw(ctx)); zombies.forEach(z => z.draw(ctx)); bullets.forEach(b => b.draw(ctx));
+            if (selectedPlantType && tempPlantPreview.visible) {
+                ctx.globalAlpha = 0.5; const pType = selectedPlantType;
+                const pImg = pType === 'peashooter' ? peashooterImage : sunflowerImage;
+                const pW = pType === 'peashooter' ? PEASHOOTER_DISPLAY_WIDTH : SUNFLOWER_DISPLAY_WIDTH;
+                const pH = pType === 'peashooter' ? PEASHOOTER_DISPLAY_HEIGHT : SUNFLOWER_DISPLAY_HEIGHT;
+                if (pImg && pImg.complete && pImg.naturalWidth > 0) { ctx.drawImage(pImg, tempPlantPreview.x, tempPlantPreview.y, pW, pH); }
+                else { ctx.fillStyle = pType === 'peashooter' ? COLORS.peashooter : COLORS.sunflower; ctx.fillRect(tempPlantPreview.x, tempPlantPreview.y, pW, pH); }
+                ctx.globalAlpha = 1.0;
+            }
+        }
+        function gameLoop(timestamp) {
+            if (gameOver) { messageBox.style.display = 'flex'; cancelAnimationFrame(animationFrameId); return; }
+            if (timestamp - lastNaturalSunSpawnTime > naturalSunSpawnDelay) { spawnNaturalSun(); lastNaturalSunSpawnTime = timestamp; naturalSunSpawnDelay = 7000 + Math.random() * 4000; }
+            if (zombiesThisWave < zombiesPerWave) { if (timestamp - lastZombieSpawnTime > zombieSpawnDelay) { spawnZombie(); lastZombieSpawnTime = timestamp; zombieSpawnDelay = 2500 + Math.random() * 2000 - (waveCount * 50); if (zombieSpawnDelay < 1000) zombieSpawnDelay = 1000; } }
+            else if (zombies.length === 0) { waveCount++; zombiesThisWave = 0; zombiesPerWave = Math.floor(3 + waveCount * 1.8); zombieSpawnDelay = 8000 - waveCount * 200; if (zombieSpawnDelay < 4000) zombieSpawnDelay = 4000; lastZombieSpawnTime = timestamp; console.log(`第 ${waveCount + 1} 波僵尸 (${zombiesPerWave}个) 即将来袭!`); sunAmount += 25 + waveCount * 5; }
+            updateGameObjects(timestamp); handleCollisions(); updateUI(); drawGameObjects();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        function resetGame() {
+            gameOver = false; suns.length = 0; plants.length = 0; zombies.length = 0; bullets.length = 0;
+            sunAmount = 150; score = 0; waveCount = 0; zombiesThisWave = 0; zombiesPerWave = 3;
+            lastZombieSpawnTime = 0; lastNaturalSunSpawnTime = 0; zombieSpawnDelay = 10000; naturalSunSpawnDelay = 8000;
+            selectedPlantType = null; tempPlantPreview.visible = false; messageBox.style.display = 'none'; updateUI();
+        }
+        function startGame() {
+            if (gameStarted && !gameOver) return; if (gameOver) { gameStarted = false; }
+            if (!gameStarted) {
+                resetGame(); gameStarted = true; startScreen.style.display = 'none'; gameContainer.style.display = 'flex';
+                const now = performance.now(); lastZombieSpawnTime = now; lastNaturalSunSpawnTime = now;
+                if (animationFrameId) cancelAnimationFrame(animationFrameId); animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+        startScreen.addEventListener('click', startGame); messageBox.addEventListener('click', startGame);
+        let tempPlantPreview = { x: 0, y: 0, visible: false };
+        canvas.addEventListener('mousemove', (event) => {
+            if (!selectedPlantType || gameOver || !gameStarted) { tempPlantPreview.visible = false; return; }
+            const rect = canvas.getBoundingClientRect(); const mX = event.clientX - rect.left, mY = event.clientY - rect.top;
+            const gX = Math.floor(mX / CELL_SIZE), gY = Math.floor(mY / CELL_SIZE);
+            if (gX < NUM_COLS && gY < NUM_ROWS && gX >= 0 && gY >= 0) {
+                const pType = selectedPlantType;
+                const pW = pType === 'peashooter' ? PEASHOOTER_DISPLAY_WIDTH : SUNFLOWER_DISPLAY_WIDTH;
+                const pH = pType === 'peashooter' ? PEASHOOTER_DISPLAY_HEIGHT : SUNFLOWER_DISPLAY_HEIGHT;
+                tempPlantPreview.x = gX * CELL_SIZE + (CELL_SIZE - pW) / 2; tempPlantPreview.y = gY * CELL_SIZE + (CELL_SIZE - pH) / 2;
+                tempPlantPreview.visible = true;
+            } else { tempPlantPreview.visible = false; }
+        });
+        canvas.addEventListener('mouseleave', () => { tempPlantPreview.visible = false; });
+        canvas.addEventListener('click', (event) => {
+            if (gameOver || !gameStarted) return;
+            const rect = canvas.getBoundingClientRect(); const mX = event.clientX - rect.left, mY = event.clientY - rect.top;
+            let sunCollectedThisClick = false;
+            for (let i = suns.length - 1; i >= 0; i--) { const sun = suns[i]; if (!sun.collected && sun.isClicked(mX, mY)) { sunAmount += sun.value; sun.collected = true; sun.remove(); sunCollectedThisClick = true; break; } }
+            if (sunCollectedThisClick) { updateUI(); return; }
+            if (selectedPlantType) {
+                const gX = Math.floor(mX / CELL_SIZE), gY = Math.floor(mY / CELL_SIZE); let cellOccupied = false;
+                for (const plant of plants) { if (plant.gridX === gX && plant.gridY === gY) { cellOccupied = true; break; } }
+                if (!cellOccupied && gX < NUM_COLS && gY < NUM_ROWS && gX >=0 && gY >=0) {
+                    let newPlant = null, cost = 0, pType = selectedPlantType;
+                    if (pType === 'peashooter') { cost = parseInt(selectPeashooterButton.dataset.cost); if (sunAmount >= cost) newPlant = new PeaShooter(gX, gY); }
+                    else if (pType === 'sunflower') { cost = parseInt(selectSunflowerButton.dataset.cost); if (sunAmount >= cost) newPlant = new Sunflower(gX, gY); }
+                    if (newPlant) { plants.push(newPlant); sunAmount -= cost; selectedPlantType = null; tempPlantPreview.visible = false; }
+                    else if (cost > 0) { console.log("阳光不足!"); }
+                }
+                updateUI();
+            }
+        });
+        plantButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (gameOver) return; const plantType = button.dataset.plantType;
+                if (button.disabled) { selectedPlantType = null; console.log(`阳光不足以选择 ${plantType}`); return; }
+                if (selectedPlantType === plantType) { selectedPlantType = null; tempPlantPreview.visible = false; } else { selectedPlantType = plantType; }
+                updateUI();
+            });
+        });
+        updateUI(); window.addEventListener('resize', () => {});
+    </script>
+</body>
+</html>
