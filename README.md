@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/O7eGsv0.png" alt="植物大战僵尸" width="300" /></p>
+
 <h1 align="center">植物大战僵尸 AI 版</h1>
 <p align="center">
   <a href="https://opensource.org/license/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT许可证"></a>
