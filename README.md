@@ -14,9 +14,9 @@
 
 本项目展示了如何将 AI 与游戏开发结合，让每个参与者都能贡献自己的创意，打造属于自己的植物大战僵尸版本。
 
-![首页点击开始](https://cdn.canghecode.com/blog/20250508232428.png)
+![首页点击开始](assets/images/start-screen.png)
 
-![游戏界面](https://cdn.canghecode.com/blog/20250508232626.png)
+![游戏界面](assets/images/game-screen.png)
 
 AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏，全程不写一行代码，好酷！](https://mp.weixin.qq.com/s/-0pbpXIBu2T1-FmVFsUPYg)
 
@@ -34,7 +34,7 @@ AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏
 
 ## 🎮 游戏演示
 
-![游戏演示](https://i.imgur.com/example.gif)
+![游戏演示](assets/images/gameplay.gif)
 
 ## 🚀 如何开始
 
@@ -50,7 +50,7 @@ AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏
 
 1. 克隆本仓库到本地
 ```bash
-git clone https://github.com/yourusername/plants-vs-zombies-ai.git
+git clone https://github.com/jumbojing/plants-vs-zombies-ai.git
 ```
 
 2. 使用浏览器打开 `index.html` 文件
