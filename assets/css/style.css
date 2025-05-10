@@ -1,0 +1,143 @@
+/* 游戏基础样式 */
+body {
+    font-family: 'Inter', 'SimHei', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #333;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* 开始界面 */
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+#start-screen h1 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 2.5rem;
+    color: #FFD700;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+/* 游戏容器 */
+#game-container {
+    background-size: cover;
+    background-position: center top;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* UI 面板 */
+.ui-panel {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: transparent;
+    padding: 20px 0 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    width: 100%;
+}
+
+.ui-panel button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.ui-panel button:hover {
+    background-color: #45a049;
+}
+
+.ui-panel button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* 游戏画布 */
+canvas {
+    display: block;
+    pointer-events: auto;
+    z-index: 0;
+}
+
+/* 底部间隔 */
+#bottom-spacer {
+    height: 200px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+/* 信息显示 */
+#message-box {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1001;
+}
+
+#message-box h2 {
+    color: #FFD700;
+    margin-bottom: 1rem;
+}
+
+#message-box p {
+    color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #start-screen h1 {
+        font-size: 2rem;
+    }
+    
+    .ui-panel {
+        padding: 10px 0 5px;
+    }
+    
+    .ui-panel button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}

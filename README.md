@@ -14,9 +14,9 @@
 
 本项目展示了如何将 AI 与游戏开发结合，让每个参与者都能贡献自己的创意，打造属于自己的植物大战僵尸版本。
 
-![首页点击开始](assets/images/start-screen.png)
+![首页点击开始](./assets/images/gameImg/start-screen-bg.png)
 
-![游戏界面](assets/images/game-screen.png)
+![游戏界面](./assets/images/gameImg/game-bg.png)
 
 AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏，全程不写一行代码，好酷！](https://mp.weixin.qq.com/s/-0pbpXIBu2T1-FmVFsUPYg)
 
@@ -34,7 +34,7 @@ AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏
 
 ## 🎮 游戏演示
 
-![游戏演示](assets/images/gameplay.gif)
+![向日葵](./assets/images/gameImg/sunflower.png) ![豌豆射手](./assets/images/gameImg/peashooter.png) ![僵尸](./assets/images/gameImg/zombie.png)
 
 ## 🚀 如何开始
 
