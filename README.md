@@ -1,4 +1,3 @@
-
 <h1 align="center">植物大战僵尸 AI 版</h1>
 <p align="center">
   <a href="https://opensource.org/license/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT许可证"></a>
@@ -64,6 +63,29 @@ start index.html
 # 使用Python的简易HTTP服务器
 python -m http.server
 # 然后访问 http://localhost:8000
+```
+
+## 🌟 分支说明
+
+本项目提供两个独立分支，满足不同需求：
+
+- **master 分支**：原始版本
+  - 经典的植物大战僵尸网页版游戏
+  - 基础的游戏功能
+  - 适合想体验原版游戏的玩家
+
+- **jumbo 分支**：AI 魔改版
+  - 包含 AI 魔改系统
+  - 支持自定义咒语集
+  - 适合想创造自己独特玩法的玩家
+
+选择分支：
+```bash
+# 使用原始版本
+git clone -b master https://github.com/yourusername/plants-vs-zombies-ai.git
+
+# 使用魔改版本
+git clone -b jumbo https://github.com/yourusername/plants-vs-zombies-ai.git
 ```
 
 ## 🎯 游戏规则
