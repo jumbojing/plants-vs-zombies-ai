@@ -40,11 +40,11 @@ AI创作教程：[我用谷歌新发布的AI做了一个植物大战僵尸游戏
 
 ### 在线体验
 
-访问 [游戏演示链接](https://yourusername.github.io/plants-vs-zombies-ai/) 即可在线体验游戏
+访问 [游戏演示链接](https://jumbojing.github.io/plants-vs-zombies-ai/) 即可在线体验游戏
 
 提供两个版本供体验：
-- [原始版本](https://yourusername.github.io/plants-vs-zombies-ai/)
-- [魔改版本](https://yourusername.github.io/plants-vs-zombies-ai/jumbo/)
+- [原始版本](https://jumbojing.github.io/plants-vs-zombies-ai/)
+- [魔改版本](https://jumbojing.github.io/plants-vs-zombies-ai/jumbo/)
 
 ### 本地运行
 
