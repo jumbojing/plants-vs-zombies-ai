@@ -257,12 +257,12 @@
 
         // --- Image Preloading and Asset URLs ---
         const ASSET_URLS = {
-            sun: 'assets/images/gameImg/sun.png',
-            zombie: 'assets/images/gameImg/zombie.png',
-            peashooter: 'assets/images/gameImg/peashooter.png',
-            sunflower: 'assets/images/gameImg/sunflower.png',
-            startScreenBg: 'assets/images/gameImg/start-screen-bg.png',
-            gameBg: 'assets/images/gameImg/game-bg.png'
+            sun: '/plants-vs-zombies-ai/assets/images/gameImg/sun.png',
+            zombie: '/plants-vs-zombies-ai/assets/images/gameImg/zombie.png',
+            peashooter: '/plants-vs-zombies-ai/assets/images/gameImg/peashooter.png',
+            sunflower: '/plants-vs-zombies-ai/assets/images/gameImg/sunflower.png',
+            startScreenBg: '/plants-vs-zombies-ai/assets/images/gameImg/start-screen-bg.png',
+            gameBg: '/plants-vs-zombies-ai/assets/images/gameImg/game-bg.png'
         };
 
         // MODIFIED: Placeholder dimensions increased for larger elements
@@ -283,6 +283,14 @@
             gameBg: 'https://placehold.co/1200x800/556b2f/ffffff?text=Lawn'
         };
 
+        // 根据环境使用不同的基础路径
+        const BASE_URL = window.location.hostname === 'localhost' ? '' : '/plants-vs-zombies-ai';
+        
+        // 更新资源 URL
+        Object.keys(ASSET_URLS).forEach(key => {
+            ASSET_URLS[key] = BASE_URL + ASSET_URLS[key];
+        });
+        
         startScreen.style.backgroundImage = `url('${ASSET_URLS.startScreenBg}'), url('${PLACEHOLDER_URLS.startScreenBg}')`;
         gameContainer.style.backgroundImage = `url('${ASSET_URLS.gameBg}'), url('${PLACEHOLDER_URLS.gameBg}')`;
 
